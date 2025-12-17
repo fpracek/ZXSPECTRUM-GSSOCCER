@@ -7,10 +7,10 @@
         "command": "sjasmplus",
         "args": [
           "--inc=./inc",
-          "--sld=${workspaceFolder}/out/zxetris.sld",
+          "--sld=${workspaceFolder}/out/gssoccer.sld",
           "--fullpath",
-          "--lst=${workspaceFolder}/out/zxetris.list",
-          "./src/zxetris.asm"
+          "--lst=${workspaceFolder}/out/gssoccer.list",
+          "./src/gssoccer.asm"
         ],
         "group": {
           "kind": "build",

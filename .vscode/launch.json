@@ -6,18 +6,18 @@
         "type": "dezog",
         "rootFolder": "${workspaceFolder}",
         "request": "launch",
-        "name": "ZXETRIS",
+        "name": "GSSOCCER",
         "remoteType": "zsim",
         "zsim": {
               "preset": "spectrum",
               "memoryModel": "ZX48K",
         },
-        "startAutomatically": true,
+        "startAutomatically": false,
         "preLaunchTask": "buildZXSpectrum",
-        "load":"${workspaceFolder}/out/zxetris.sna",
+        "load":"${workspaceFolder}/out/gssoccer.sna",
         "sjasmplus": [
         {
-          "path": "${workspaceFolder}/out/zxetris.sld"
+          "path": "${workspaceFolder}/out/gssoccer.sld"
         }],
       }
     ]
