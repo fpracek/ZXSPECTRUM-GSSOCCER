@@ -5,34 +5,7 @@
 ; *** HOOKS.ASM ***
 
 
-;----------------------------------------------------------------------
-; VBlank hook installation
-; INPUT: -
-; OUTPUT: -
-; MODIFIES: A, DE, HL, BC
-;----------------------------------------------------------------------
-Hooks_Init:
-    CALL    SetM2RRoutine
-    DI                                      ; Disable interrupts
-    IM      2                               ; Set the interrupt mode
-    EI                                      ; Enable interrupts
-    RET     
 
-;----------------------------------------------------------------------
-; SetM2RRoutine
-;----------------------------------------------------------------------
-SetM2RRoutine:
-    LD      HL,VBlankISR
-    LD      IX,0xFFF0                       ; This code is to be written at 0xFF
-    LD      (IX+04h),0xC3                   ; Opcode for JP
-    LD      (IX+05h),L                      ; Store the address of the interrupt routine in
-    LD      (IX+06h),H
-    LD      (IX+0Fh),0x18                   ; Opcode for JR; this will do JR to FFF4h
-    LD      A,0x39                          ; Interrupt table at page 0x3900 (ROM)
-    LD      I,A                             ; Set the interrupt register to that page
-    RET
-
-;----------------------------------------------------------------------
 ; Hooks_TickStart
 ;----------------------------------------------------------------------
 Hooks_TickStart:
@@ -58,19 +31,10 @@ Hooks_TickStop:
 ; MODIFIES: A, DE, HL, BC
 ;----------------------------------------------------------------------
 VBlankISR:
-    DI                                         ; Disable interrupts 
-    PUSH    AF                                 ; Save all the registers on the stack
-    PUSH    BC                                 ; This is probably not necessary unless
-    PUSH    DE                                 ; we're looking at returning cleanly
-    PUSH    HL                                 ; back to BASIC at some point
-    PUSH    IX
-    EXX
-    EX      AF,AF'
     PUSH    AF
     PUSH    BC
     PUSH    DE
     PUSH    HL
-    PUSH    IY
 
 
 
@@ -105,7 +69,7 @@ VBlankISR:
     JR      Z, .AfterGoalCerimony
     CP      NO_VALUE
     JP      Z, .CheckBlinkingRestartAfterGoal
-    JP      .ShowGoalCeromony
+    JP      .ShowGoalCerimony
 .AfterGoalCerimony:
     CALL    Utils_PlayBeepHighLong
     LD      A, (Var_Hooks_GameResumingWaiting)
@@ -139,23 +103,16 @@ VBlankISR:
     CALL    UpdateMatchTime
 .ReadKeyBoard:
     CALL    Utils_ReadKeyboard
-    LD      A, (Var_Utils_KbdKeyPressed)
     CP      KBD_KEY_SPACE
     JP      Z, .SpaceButtonPressed
     CP      KBD_KEY_LEFT
     JP      Z, .LeftArrowPressed
-    CP      KBD_KEY_J
-    JP      Z, .LeftArrowPressed
     CP      KBD_KEY_RIGHT
-    JP      Z, .RightArrowPressed
-    CP      KBD_KEY_K
     JP      Z, .RightArrowPressed
     CP      KBD_KEY_DOWN
     JP      Z, .DownArrowPressed
     CP      KBD_KEY_UP
     JP      Z, .UpArrowPressed
-    JP      KBD_KEY_I
-    JP      Z, .UpArrowPressed        
     CP      KBD_KEY_W
     JP      Z, .WKeyPressed
     CP      KBD_KEY_A
@@ -163,20 +120,11 @@ VBlankISR:
     CP      KBD_KEY_S
     JP      Z, .SKeyPressed
 .Exit
-    POP     IY                                  ; Restore all the registers
-    POP     HL
-    POP     DE
-    POP     BC
-    POP     AF
-    EXX
-    EX      AF,AF'
-    POP     IX
-    POP     HL
-    POP     DE
-    POP     BC
-    POP     AF
-    EI                                      ; Enable interrupts
-    RET  
+    POP    HL
+    POP    DE
+    POP    BC
+    POP    AF
+    RETI ;JP     Var_Hooks_Old_HTIMI    ; return to the original code (inside the BIOS)
 .WKeyPressed:
     LD      A, (Var_Game_MatchInProgress)
     CP      NO
@@ -189,6 +137,9 @@ VBlankISR:
     LD      A, (Var_Game_MatchInProgress)
     CP      YES
     JP      Z, .WhiteTeamTryShotOrRestart
+    LD      A, (Var_Game_SelectedPlayers)
+    CP      GAME_MODE_1_PLAYER
+    JP      NZ, .Exit
     JP     .LevelUp
     JP      .Exit
 .SpaceButtonPressed:
@@ -222,6 +173,9 @@ VBlankISR:
     LD      A, (Var_Game_MatchInProgress)
     CP      YES
     JP      Z, .Exit
+    LD      A, (Var_Game_SelectedPlayers)
+    CP      GAME_MODE_1_PLAYER
+    JP      NZ, .Exit
     JP     .LevelDown
     JP      .Exit
 .RightArrowPressed:
@@ -387,7 +341,7 @@ VBlankISR:
     CALL    Game_Resume
     CALL    VDP_PlayerMatrixRedraw
     JP      .Exit
-.ShowGoalCeromony:
+.ShowGoalCerimony:
     LD      A, (Var_Hooks_CerimonySpeedCounter)
     INC     A
     LD      (Var_Hooks_CerimonySpeedCounter), A
@@ -411,10 +365,10 @@ VBlankISR:
 
     LD      A,(Var_Hooks_GoalCerimonyCounter)
     CP      0
-    JP      NZ,.Exit
+    JP      NZ,.ReadKeyBoard
     LD      A, NO_VALUE
     LD      (Var_Hooks_GoalCerimonyCounter), A
-    JP      .Exit
+    JP      .ReadKeyBoard
 .StartGame:
     LD      A,NO_VALUE
     LD      (Var_Game_FirstKickType), A
@@ -474,10 +428,9 @@ VBlankISR:
     LD      A, B
     LD      (Var_Hooks_BlinkingActiveTile), A
     CALL    Game_GetBallPosition
-    CALL    VDP_MapMatrixToScreen_DE
     LD      A, (Var_Hooks_BlinkingActiveTile)
     CALL    VDP_DrawSprite
-    JP      .Exit
+    JP      .ReadKeyBoard
 .CheckBlinkingStateStop:
     LD      A, NO
     LD      (Var_Hooks_BlinkingIsActive), A
@@ -496,6 +449,7 @@ VBlankISR:
     CALL  Game_ClearGameFieldForGoalCerimony
     LD    A, 9
     LD    (Var_Hooks_GoalCerimonyCounter), A
+    CALL    CerimonyRedrawHalfFieldLine
     JP    .Exit
 .CheckBlinkingRestartAfterNoGoalFromSouth:    
     CALL    VDP_DrawField

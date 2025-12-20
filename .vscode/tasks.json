@@ -6,6 +6,7 @@
         "type": "shell",
         "command": "sjasmplus",
         "args": [
+          "--sym=${workspaceFolder}/out/gssoccer.sym",
           "--inc=./inc",
           "--sld=${workspaceFolder}/out/gssoccer.sld",
           "--fullpath",

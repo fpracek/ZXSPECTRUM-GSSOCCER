@@ -1498,7 +1498,7 @@ Game_Resume:
     ; fall-through
 
 .after_case:
-    CALL  VDP_RemoveVirtualPlayer
+
     ; ridisegna i giocatori (la palla verrà ridisegnata nella nuova posizione)
     call VDP_PlayerMatrixRedraw
 
@@ -1532,6 +1532,7 @@ Resume_WhiteGoalKick:
     CALL VDP_PlayerMatrixRedraw
     RET
 .exec:
+    CALL  VDP_RemoveVirtualPlayer
     ; --- sposta la palla su colonna 1 o 3 della stessa riga (Y=2) ---
     call Game_GetRandomByte
     and  1
@@ -1588,6 +1589,7 @@ Resume_BlackGoalKick:
     CALL VDP_PlayerMatrixRedraw
     ret
 .exec:
+    CALL  VDP_RemoveVirtualPlayer
         ; --- sposta la palla su colonna 1 o 3 della stessa riga (Y=1) ---
     call Game_GetRandomByte
     and  1
@@ -1640,6 +1642,7 @@ Resume_BlackKickoff:
     LD   (Var_Game_FirstKickType), A
     RET
 .exec:
+    CALL  VDP_RemoveVirtualPlayer
     ; --- sposta la palla su colonna 1 o 3 della stessa riga (Y=0) ---
     call Game_GetRandomByte
     and  1
@@ -1692,6 +1695,7 @@ Resume_WhiteKickoff:
     LD   (Var_Game_FirstKickType), A
     RET
 .exec:
+    CALL  VDP_RemoveVirtualPlayer
     ; --- sposta la palla su colonna 1 o 3 della stessa riga (Y=3) ---
     call Game_GetRandomByte
     and  1
@@ -2452,7 +2456,7 @@ Game_TryShot:
     push de
     push hl
 
-    call Game_PlayBeep
+
     ; Leggi posizione giocatore (H=Y, L=X)
     call Game_GetPlayerInfoById
 
@@ -2712,6 +2716,7 @@ Game_TryShot:
 
 .store_dir:
     ld   (Var_Game_BallDirection),a
+    call Game_PlayBeep
     jr   .done
 
 .stop_shot:
@@ -4048,6 +4053,39 @@ PutCerimonyWhitePlayersPos2:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 17
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 18
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 19
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 20
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4083,6 +4121,40 @@ PutCerimonyWhitePlayersPos3:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 13
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 14
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 15
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 16
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+
+
+    LD      D, 17
+    LD      E, 6
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 7
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4118,13 +4190,47 @@ PutCerimonyWhitePlayersPos4:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 5
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 6
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 7
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 8
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
 ; PutCerimonyWhitePlayersPos5
 ; ----------------------------------------------------------------------------
 PutCerimonyWhitePlayersPos5:
-    CALL Utils_PlayBeepHighLong
+    CALL    Utils_PlayBeepHighLong
     LD      D, 2
     LD      E, 2
     PUSH    DE
@@ -4153,6 +4259,39 @@ PutCerimonyWhitePlayersPos5:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 9
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 10
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 11
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 12
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 18
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 19
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4188,6 +4327,37 @@ PutCerimonyWhitePlayersPos6:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 17
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 18
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 19
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 20
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4223,6 +4393,41 @@ PutCerimonyWhitePlayersPos7:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 13
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 14
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 15
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 16
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+
+
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 6
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 7
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4258,6 +4463,39 @@ PutCerimonyWhitePlayersPos8:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 5
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 6
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 7
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 8
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 10
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 11
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
+
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4293,6 +4531,38 @@ PutCerimonyWhitePlayersPos9:
     LD      A, TILE_FIELD
 
     CALL    VDP_DrawSprite  
+
+    LD      D, 17
+    LD      E, 9
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 10
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 11
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 12
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+
+    LD      D, 17
+    LD      E, 14
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 15
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 18
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_1
+    call    VDP_PrintRamChar
+    LD      D, 17
+    LD      E, 19
+    ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
+    call    VDP_PrintRamChar
+
     POP     DE
     RET
 
@@ -4420,12 +4690,14 @@ PutCerimonyBlackPlayersPos4:
     LD      E, 3
     PUSH    DE
     LD      A,TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 0
     LD      E, 1
     PUSH    DE
     LD      A,TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
 
@@ -4433,12 +4705,14 @@ PutCerimonyBlackPlayersPos4:
     LD      E, 3
     PUSH    DE
     LD      A, TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 2
     LD      E, 1
     PUSH    DE
     LD      A, TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     RET
@@ -4451,12 +4725,14 @@ PutCerimonyBlackPlayersPos5:
     LD      E, 2
     PUSH    DE
     LD      A,TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 0
     LD      E, 0
     PUSH    DE
     LD      A,TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
 
@@ -4464,12 +4740,14 @@ PutCerimonyBlackPlayersPos5:
     LD      E, 4
     PUSH    DE
     LD      A, TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 2
     LD      E, 2
     PUSH    DE
     LD      A, TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     RET
@@ -4489,6 +4767,7 @@ PutCerimonyBlackPlayersPos6:
     LD      E, 2
     PUSH    DE
     LD      A,TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
 
@@ -4496,12 +4775,14 @@ PutCerimonyBlackPlayersPos6:
     LD      E, 2
     PUSH    DE
     LD      A, TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 2
     LD      E, 4
     PUSH    DE
     LD      A, TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     RET
@@ -4514,12 +4795,14 @@ PutCerimonyBlackPlayersPos7:
     LD      E, 1
     PUSH    DE
     LD      A,TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 0
     LD      E, 3
     PUSH    DE
     LD      A,TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
 
@@ -4527,6 +4810,7 @@ PutCerimonyBlackPlayersPos7:
     LD      E, 1
     PUSH    DE
     LD      A, TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 2
@@ -4581,12 +4865,14 @@ PutCerimonyBlackPlayersPos9:
     LD      E, 2
     PUSH    DE
     LD      A,TILE_FIELD
+
     CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 0
     LD      E, 0
     PUSH    DE
     LD      A,TILE_BLACK_PLAYER
+
     CALL    VDP_DrawSprite  
     POP     DE
 
@@ -4594,13 +4880,15 @@ PutCerimonyBlackPlayersPos9:
     LD      E, 4
     PUSH    DE
     LD      A, TILE_BLACK_PLAYER
-      CALL    VDP_DrawSprite  
+
+    CALL    VDP_DrawSprite  
     POP     DE
     LD      D, 2
     LD      E, 2
     PUSH    DE
     LD      A, TILE_FIELD
-     CALL    VDP_DrawSprite  
+
+    CALL    VDP_DrawSprite  
     POP     DE
     RET
 ; ---------------------------------------------------------------------------
@@ -4620,6 +4908,34 @@ Game_PlayBeepGoalCorner:
     CP      YES
     RET     NZ
     CALL    Utils_PlayBeepGoalCorner
+    RET
+
+; ---------------------------------------------------------------------------
+; CerimonyRedrawHalfFieldLine
+; ----------------------------------------------------------------------------
+CerimonyRedrawHalfFieldLine:
+    PUSH DE
+    LD   A, (Var_Game_ActiveFieldSide)
+    CP   FIELD_NORTH_SIDE
+    JR   Z, .North   
+    LD   D, 7
+    JR   .Continue
+.North:
+    LD   D, 17
+.Continue:
+    LD   E, 1
+.Loop:
+    PUSH DE
+    LD   A, TILE_FIELD_LINE_HORIZONTAL
+    CALL VDP_PrintRamChar
+    POP  DE
+    INC  E
+    LD   A, E
+    CP   21
+    JR   Z, .Done
+    JR   .Loop
+.Done:
+    POP DE
     RET
 ; ---------------------------------------------------------------------------
 ; Game_GoalCelebration_DrawFrame
@@ -4654,7 +4970,7 @@ Game_GoalCelebration_DrawFrame:
     CP      6
     JR      NZ, .White5
     CALL    PutCerimonyWhitePlayersPos3
-    JR      .Done
+    JP      .Done
 .White5:
     CP      5
     JR      NZ, .White4

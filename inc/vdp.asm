@@ -35,7 +35,7 @@ VDP_PrintRamChar:
         PUSH    DE
         PUSH    AF
         CP      TILE_BALL_BOTTOM
-        JR      C, .AfterColorCheck
+        JP      C, .AfterColorCheck
         LD      A, GREEN_CHAR_ATTRIBUTE
         CALL    VDP_SetCharAttribute
 .AfterColorCheck:
@@ -141,7 +141,7 @@ VDP_LoadTiles:
     LD      HL, TILES   
     LD      BC, 1792
     LDIR
-    EI                      ; Interrupts enabled
+    ;EI                      ; Interrupts enabled
     RET
 ;------------------------------------------------------------------------
 ; Clear screen (INVARIATA)
@@ -195,6 +195,12 @@ VDP_DrawSprite:
     ld      e,a
     inc     e
     inc     d
+    ld      a, (Var_Game_ActiveFieldSide)
+    CP      FIELD_NORTH_SIDE
+    JP      Z, .NorthSideAdjust
+    inc     d
+    inc     d
+.NorthSideAdjust:
     POP     AF
     ld      c,a
     cp      TILE_CORNER_BALL_EMPTY
@@ -283,20 +289,20 @@ VDP_DrawSprite:
 .CornerBall:
     cp      TILE_CORNER_BALL
     jr      nz,.Dispatch
-    ld      a,109
+    ld      a,77
     call    VDP_PrintRamChar
     inc     e
-    ld      a,110
+    ld      a,78
     call    VDP_PrintRamChar
     ret
 
 .TopBall:
     cp      TILE_BALL_TOP
     jr      nz,.Dispatch
-    ld      a,109
+    ld      a,77
     call    VDP_PrintRamChar
     inc     e
-    ld      a,110
+    ld      a,78
     call    VDP_PrintRamChar
     ret
 
@@ -304,16 +310,18 @@ VDP_DrawSprite:
     cp      TILE_BALL_TOP_FRONT
     jr      nz,.Dispatch
     inc     e
-    ld      a,109
+    ld      a,77
     call    VDP_PrintRamChar
     inc     e
-    ld      a,110
+    ld      a,78
     call    VDP_PrintRamChar
     ret
 
 ; ---------- dispatcher ----------
 .Dispatch:
     cp      TILE_WHITE_PLAYER
+    jp      z,.MaybeWhiteHalfLine
+    cp      TILE_WHITE_PLAYER_NEAR_HALF_FIELD
     jp      z,.MaybeWhiteHalfLine
     cp      TILE_WHITE_PLAYER_WITH_BALL
     jp      z,.DrawWhiteWithFeetBall
@@ -323,15 +331,22 @@ VDP_DrawSprite:
 
 ; ---------- white: “testa nella metà campo” ----------
 .MaybeWhiteHalfLine:
-    ld      a,(Var_Vdp_HalfFieldHorzLinePos)
-    ld      b,a
-    ld      a,d
-    dec     a
-    cp      b
-    jr      nz,.DrawWhiteBaseNormal
-
+    cp      TILE_WHITE_PLAYER_NEAR_HALF_FIELD
+    jr      z, .MaybeWhiteHalfLineContinue
+    ld      a, (Var_Game_ActiveFieldSide)
+    CP      FIELD_SOUTH_SIDE
+    JP      NZ, .MaybeWhiteHalfLineNorth
+    LD      A,D
+    CP      7
+    JP      NZ, .DrawWhiteBaseNormal
+    JP      .MaybeWhiteHalfLineContinue
+.MaybeWhiteHalfLineNorth:
+    LD      A,D
+    CP      17
+    JP      NZ, .DrawWhiteBaseNormal
+.MaybeWhiteHalfLineContinue:
     push    de
-    ld      d,b
+    ;ld      d,b
     ld      a,e
     inc     a
     ld      e,a
@@ -341,10 +356,10 @@ VDP_DrawSprite:
     ld      a,TILE_FIELD_LINE_WHITE_PLAYER_2
     call    VDP_PrintRamChar
     pop     de
-
+    inc     d
     ld      a,TILE_WHITE_PLAYER_NEAR_HALF_FIELD
     jp      .BaseDraw
-
+    dec     d
 .DrawWhiteBaseNormal:
     ld      a,TILE_WHITE_PLAYER
     jp      .BaseDraw
@@ -477,7 +492,12 @@ VDP_DrawSprite:
     inc     e
     inc     a
     call    VDP_PrintRamChar
-
+    ld      (Var_VdpTemp), a
+    pop     af
+    push    af
+    cp      TILE_WHITE_PLAYER_NEAR_HALF_FIELD
+    JR      Z, .HalfLineRedraw
+    ld      a, (Var_VdpTemp)
     inc     d
     dec     e
     dec     e
@@ -493,11 +513,75 @@ VDP_DrawSprite:
     inc     e
     inc     a
     call    VDP_PrintRamChar
-
+.HalfLineRedraw:
+    PUSH    HL
+    PUSH    BC
+    call    .HalfFieldRowRedraw
+    POP     BC
+    POP     HL
     pop     af
     pop     de
+    
     ret
-
+.HalfFieldRowRedraw:
+    LD      A, (Var_Game_ActiveFieldSide)
+    CP      FIELD_NORTH_SIDE
+    JR      NZ, .HalfFieldRowRedrawSouth
+    LD      D, 4
+    LD      A, D
+    ADD     A, A
+    ADD     A, A
+    LD      B, A
+.HalfFieldRowRedrawDone:
+    LD      E, 0
+.HalfFieldRowRedrawDoneColsLoop:
+    PUSH    DE
+    PUSH    DE
+    PUSH    BC
+    CALL    Game_GetPlayerInfoByPos
+    POP     BC
+    POP     DE
+    CP      NO_VALUE
+    JR      NZ, .HalfFieldRowRedrawDoneColsLoopContinue
+    LD      D, B
+    LD      A, E
+    ADD     A, A
+    ADD     A, A
+    LD      E, A
+    INC     D
+    INC     E
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    PUSH    BC
+    CALL    VDP_PrintRamChar
+    POP     BC
+    INC     E
+    PUSH    BC
+    CALL    VDP_PrintRamChar
+    POP     BC
+    INC     E
+    PUSH    BC
+    CALL    VDP_PrintRamChar
+    POP     BC
+    INC     E
+    PUSH    BC
+    CALL    VDP_PrintRamChar
+    POP     BC
+.HalfFieldRowRedrawDoneColsLoopContinue:
+    POP     DE
+    INC     E
+    LD      A, E
+    CP      4
+    RET     Z
+    JR      .HalfFieldRowRedrawDoneColsLoop
+.HalfFieldRowRedrawSouth:
+    LD      D, 1
+    LD      A, D
+    ADD     A, A
+    ADD     A, A
+    LD      B, A
+    INC     B
+    INC     B
+    JP      .HalfFieldRowRedrawDone
 
 
 ; -----------------------------------------------------------
@@ -570,7 +654,7 @@ VDP_SetCharAttribute:
         POP     AF
         LD      (HL),A          ; Scrivi l'attributo
         CP      0xFF
-        JR      NZ, SetAttributeAtDE_1
+        JP      NZ, SetAttributeAtDE_1
 
         LD      (HL),20
 SetAttributeAtDE_1:
@@ -765,7 +849,7 @@ VDP_DrawField:
     call VDP_PrintRamChar
 
     ; croci
-    ld   d,6
+    ld   d,7
     ld   e,0
     ld   a,TILE_FIELD_LINE_LEFT_CROSS
     call VDP_PrintRamChar
@@ -776,7 +860,7 @@ VDP_DrawField:
     ; metà campo (riga 6): da col 1 a 20
     ld   a,1
 .SouthLoop:
-    ld   d,6
+    ld   d,7
     push af
     ld   e,a
     ld   a,TILE_FIELD_LINE_HORIZONTAL
@@ -962,86 +1046,39 @@ VDP_DrawField:
     ;POP  BC
     ;POP  AF
     RET
-; ---------------------------------------------------------------------------
-; Maps logical 5x5 matrix coords (0..4) in DE to Name Table coordinates.
-;
-; INPUT:
-;   D = logical Y (0..4)
-;   E = logical X (0..4)
-;   Var_Game_ActiveFieldSide:
-;       FIELD_NORTH_SIDE / FIELD_SOUTH_SIDE
-; OUTPUT:
-;   D = screen row  (Name Table)
-;   E = screen col  (Name Table)
-; MODIFIES:
-;   AF
-; ---------------------------------------------------------------------------
-VDP_MapMatrixToScreen_DE:
-    ; ---- Columns: X 0..4 -> 1,5,9,13,17 ----
-    LD      A,E
-    ADD     A,A          ; 2X
-    ADD     A,A          ; 4X
-    INC     A            ; 4X+1
-    LD      E,A
 
-    ; ---- Rows: dipendono dalla metà campo attiva ----
-    LD      A,(Var_Game_ActiveFieldSide)
-    CP      FIELD_NORTH_SIDE
-    JR      Z,.NorthRows
-
-    ; ===== SOUTH =====
-    ; Y: 0,1,2,3,4 -> 2,7,11,15,19
-    LD      A,D
-    CP      0
-    JR      Z,.SRow0
-    CP      1
-    JR      Z,.SRow1
-    CP      2
-    JR      Z,.SRow2
-    CP      3
-    JR      Z,.SRow3
-    LD      D,19
-    RET
-
-.SRow0:
-    LD      D,2
-    RET
-.SRow1:
-    LD      D,7
-    RET
-.SRow2:
-    LD      D,11
-    RET
-.SRow3:
-    LD      D,15
-    RET
-
-    ; ===== NORTH =====
-.NorthRows:
-    ; Y: 0,1,2,3,4 -> 1,5,9,13,18
-    LD      A,D
-    ADD     A,A          ; 2Y
-    ADD     A,A          ; 4Y
-    INC     A            ; 4Y+1  => 1,5,9,13,17
-    CP      17
-    JR      NZ,.NRowOK
-    INC     A            ; solo per Y=4: 17 -> 18
-.NRowOK:
-    LD      D,A
-    RET
 ; ---------------------------------------------------------
 ; Rimuove il giocatore virtuale dallo schermo (se visibile)
 ; ---------------------------------------------------------
 VDP_RemoveVirtualPlayer:
-    LD  A,(Var_Game_VirtualPlayerYPos)
-    CP  255
-    RET Z
-    LD  D, A
-    LD  A,(Var_Game_VirtualPlayerXPos)
-    LD  E, A
-    CALL VDP_MapMatrixToScreen_DE
-    LD  A, TILE_FIELD
-    CALL VDP_DrawSprite
+    LD      A,(Var_Game_VirtualPlayerYPos)
+    CP      255
+    RET     Z
+    LD      D, A
+    LD      A,(Var_Game_VirtualPlayerXPos)
+    LD      E, A
+    LD      A, TILE_FIELD
+    CALL    VDP_DrawSprite
+    LD      A, (Var_Game_ActiveFieldSide)
+    CP      FIELD_SOUTH_SIDE
+    JR      NZ, .Done
+    LD      A, (Var_Game_VirtualPlayerXPos)
+    CP      4
+    JR      NZ, .Done
+    LD      D, 7
+    LD      E, 17
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 18
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 19
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+    LD      E, 20
+    LD      A, TILE_FIELD_LINE_HORIZONTAL
+    CALL    VDP_PrintRamChar
+.Done:
     LD  A, 255
     LD  (Var_Game_VirtualPlayerYPos), A
     RET
@@ -1081,7 +1118,6 @@ VDP_PlayerMatrixRedraw_DrawVirtual:
 .VirtHaveTile:
     ; mappa (D,E) -> coordinate schermo in (D,E)
     PUSH  AF
-    call VDP_MapMatrixToScreen_DE
     POP   AF
     ; A = tile di base, D,E = row/col → disegna lo sprite
     call VDP_DrawSprite
@@ -1153,7 +1189,6 @@ VDP_PlayerMatrixRedraw:
     ld  d,a                          ; Y old
     ld  a,(Var_Game_BallXOldPosition)
     ld  e,a                          ; X old
-    call VDP_MapMatrixToScreen_DE
     ld  a,TILE_FIELD
     call VDP_DrawSprite
 
@@ -1373,27 +1408,24 @@ VDP_DrawBallOnMatrix:
 .draw_sprite:
     ; A = tile, D = Y, E = X (coord matrice)
     CP   TILE_BALL_BOTTOM
-    JR   NZ, .draw_sprite_continue
+    JP   NZ, .draw_sprite_continue
     LD   A, (Var_Game_ActiveFieldSide)
     CP   FIELD_NORTH_SIDE
-    JR   Z, .darw_ball_north_field
+    JP   Z, .darw_ball_north_field
     LD   A, (Var_Game_BallYPosition)
     CP   4
-    JR   Z, .draw_ball_top
+    JP   Z, .draw_ball_top
     LD   A, TILE_BALL_BOTTOM
-    JR   .draw_sprite_continue
+    JP   .draw_sprite_continue
 .darw_ball_north_field:
     LD   A, (Var_Game_BallYPosition)
     CP   0
-    JR   Z, .draw_ball_top
+    JP   Z, .draw_ball_top
     LD   A, TILE_BALL_BOTTOM
-    JR   .draw_sprite_continue
+    JP   .draw_sprite_continue
 .draw_ball_top:
     LD   A, TILE_CORNER_BALL
 .draw_sprite_continue:
-    push af
-    call VDP_MapMatrixToScreen_DE
-    pop  af
     call VDP_DrawSprite
     jr   .exit
 
@@ -1428,94 +1460,165 @@ VPMR_PlayerLoop:
     ; ----- CLEAR PREVIOUS POSITION (se valida) --------------------
     LD   A,D                    ; prevY
     CP   255
-    JR   Z,VPMR_SkipClear
+    JP   Z,VPMR_SkipClear
 
 
     ; mappa coord logiche prev -> schermo
     PUSH HL                     ; salvo current
-    PUSH BC
     PUSH AF                     ; non mi interessa il contenuto, ma proteggo A
-    
-    ;CALL VDP_MapMatrixToScreen_DE   ; DE = coord schermo
+    PUSH BC
     LD   A,TILE_FIELD
     CALL VDP_DrawSprite             ; D=row, E=col, A=tile
-
-    POP  AF
     POP  BC
+    PUSH BC
+    LD   A, B
+    CP   TEAM_WHITE
+    JP   NZ, VPMR_AfterCheckHalfLineToClear
+    LD   A, (Var_Game_ActiveFieldSide)
+    CP   FIELD_SOUTH_SIDE
+    JP   Z, VPMR_WhiteOnSouthHalfToRemove
+
+VPMR_WhiteOnNorthHalfToRemove:
+    LD   A, D
+    CP   17
+    JP   NZ, VPMR_AfterCheckHalfLineToClear
+    PUSH  DE
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    INC   D
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+    DEC   E
+    DEC   E
+    DEC   E
+
+    INC   D
+    INC   D
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+
+    POP   DE
+    JP    VPMR_AfterCheckHalfLineToClear
+VPMR_WhiteOnSouthHalfToRemove:
+    LD   A, D
+    CP   7
+    JP   NZ, VPMR_AfterCheckHalfLineToClear
+    PUSH  DE
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD_LINE_HORIZONTAL
+    CALL  VDP_PrintRamChar
+    INC   D
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+    DEC   E
+    DEC   E
+    DEC   E
+
+    INC   D
+    INC   D
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+    INC   E
+    LD    A, TILE_FIELD
+    CALL  VDP_PrintRamChar
+
+    POP   DE
+    JP    VPMR_AfterCheckHalfLineToClear
+
+VPMR_AfterCheckHalfLineToClear:
+    POP  BC
+    POP  AF
     POP  HL
     CALL Game_ClearSinglePlayerPrevPositions
 VPMR_SkipClear:
     ; ----- DRAW CURRENT POSITION (se visibile) -------------------
     LD   A,H                    ; curY
     CP   255
-    JR   Z,VPMR_AfterDraw       ; giocatore invisibile (es. portiere nascosto)
+    JP   Z,VPMR_AfterDraw       ; giocatore invisibile (es. portiere nascosto)
 
     ; D,E = coord logiche correnti
     LD   D,H
     LD   E,L
 
-    ; mappa coord logiche -> schermo
-    PUSH AF
-    PUSH BC
-    PUSH HL
-    CALL VDP_MapMatrixToScreen_DE
-    POP  HL
-    POP  BC
-    POP  AF
+   
     ; ora D,E = coord schermo
 
     ; ----- determina la tile in A -----------------------
     LD   A,C                    ; A = ID
     OR   A
-    JR   NZ,VPMR_FieldPlayer    ; ID != 0 → giocatore di movimento
+    JP   NZ,VPMR_FieldPlayer    ; ID != 0 → giocatore di movimento
 
     ; ===== PORTIERE =====
     LD   A,(Var_Game_GoalkeeperHasBall)
     CP   YES
-    JR   NZ,VPMR_GK_NoBall
+    JP   NZ,VPMR_GK_NoBall
 
     ; portiere CON palla
     LD   A,B                    ; TEAM
     CP   TEAM_BLACK
-    JR   NZ,VPMR_WhiteGKWithBall
+    JP   NZ,VPMR_WhiteGKWithBall
     LD   A,TILE_BLACK_GOALKEEPER_WITH_BALL
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
 
 VPMR_WhiteGKWithBall:
     LD   A,TILE_WHITE_GOALKEEPER_WITH_BALL
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
 
 VPMR_GK_NoBall:
     ; portiere SENZA palla
     LD   A,B
     CP   TEAM_BLACK
-    JR   NZ,VPMR_WhiteGKNoBall
+    JP   NZ,VPMR_WhiteGKNoBall
     LD   A,TILE_BLACK_GOALKEEPER
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
 
 VPMR_WhiteGKNoBall:
     LD   A,TILE_WHITE_GOALKEEPER
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
 
     ; ===== GIOCATORE DI MOVIMENTO =====
 VPMR_FieldPlayer:
     LD   A,B
     CP   TEAM_BLACK
-    JR   NZ,VPMR_WhitePlayer
+    JP   NZ,VPMR_WhitePlayer
     LD   A,TILE_BLACK_PLAYER
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
 
 VPMR_WhitePlayer:
     PUSH  HL
     POP   DE
     LD   A, (Var_Game_ActiveFieldSide)
     CP   FIELD_SOUTH_SIDE
-    JR   Z, VPMR_WhiteStandardPlayer
+    JP   Z, VPMR_WhitPlayerSouth
     LD   A, H
     CP   4
-    JR   NZ, VPMR_WhiteStandardPlayer
+    JP   NZ, VPMR_WhiteStandardPlayer
     LD   A,TILE_WHITE_PLAYER_NEAR_HALF_FIELD
-    JR   VPMR_DoDraw
+    JP   VPMR_DoDraw
+VPMR_WhitPlayerSouth:
+    LD   A, H
+    CP   1
+    JP   NZ, VPMR_WhiteStandardPlayer
+    LD   A,TILE_WHITE_PLAYER_NEAR_HALF_FIELD
+    JP   VPMR_DoDraw
 VPMR_WhiteStandardPlayer:
     LD   A,TILE_WHITE_PLAYER
 VPMR_DoDraw:
@@ -1553,7 +1656,7 @@ VDP_ClearMenuSideArea:
     INC     A
     CP      21
     RET     Z
-    JR      .Loop
+    JP      .Loop
 
 
 
