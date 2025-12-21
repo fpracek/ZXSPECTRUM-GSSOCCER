@@ -119,6 +119,12 @@ VBlankISR:
     JP      Z, .AKeyPressed
     CP      KBD_KEY_S
     JP      Z, .SKeyPressed
+    CP      KBD_KEY_K
+    JP      Z, .KKeyPressed
+    CP      KBD_KEY_L
+    JP      Z, .LKeyPressed
+    CP      KBD_KEY_O
+    JP      Z, .OKeyPressed
 .Exit
     POP    HL
     POP    DE
@@ -146,8 +152,13 @@ VBlankISR:
     LD      A, (Var_Game_MatchInProgress)
     CP      NO
     JP      Z, .StartGame
-    JP      .WhiteTeamTryShotOrRestart
+    JP      .Exit
+.OKeyPressed:
+    LD      A, (Var_Game_MatchInProgress)
+    CP      NO
+    JP      Z, .Exit
 .AKeyPressed:
+    JP      .WhiteTeamTryShotOrRestart
     LD      A, (Var_Game_MatchInProgress)
     CP      NO
     JP      Z, .Exit
@@ -166,8 +177,13 @@ VBlankISR:
 .LeftArrowPressed:
     LD      A, (Var_Game_MatchInProgress)
     CP      YES
-    JP      Z, .WhiteTeamMoveLeft
+    JP      Z, .Exit
     JP     .ChangeGameSelectedMode
+    JP      .Exit
+.KKeyPressed:
+    LD      A, (Var_Game_MatchInProgress)
+    CP      YES
+    JP      Z, .WhiteTeamMoveLeft
     JP      .Exit
 .DownArrowPressed:
     LD      A, (Var_Game_MatchInProgress)
@@ -181,8 +197,13 @@ VBlankISR:
 .RightArrowPressed:
     LD      A, (Var_Game_MatchInProgress)
     CP      YES
-    JP      Z, .WhiteTeamMoveRight
+    JP      Z, .Exit
     JP     .ChangeGameSelectedMode
+    JP     .Exit
+.LKeyPressed:
+    LD      A, (Var_Game_MatchInProgress)
+    CP      YES
+    JP      Z, .WhiteTeamMoveRight
     JP     .Exit
 .BlackTeamMoveLeft:    
     LD      A, (Var_Game_FirstKickType)

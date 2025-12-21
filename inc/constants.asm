@@ -134,9 +134,9 @@ KBD_KEY_A:                                      EQU 65
 KBD_KEY_S:                                      EQU 83
 
 
-KBD_KEY_J:                                      EQU 74
 KBD_KEY_K:                                      EQU 75
-KBD_KEY_I:                                      EQU 73
+KBD_KEY_L:                                      EQU 76
+KBD_KEY_O:                                      EQU 79
 
 KEYBOARD_MAP:                                   DEFB #FE,"#","Z","X","C","V"
                                                 DEFB #FD,"A","S","D","F","G"
@@ -156,9 +156,9 @@ TXT_LEVEL_4:                                    DEFB "^LEV.4",0
 TXT_LEVEL_5:                                    DEFB "^LEV.5",0
 TXT_LEVEL_NO:                                   DEFB "       ",0
 TXT_BTN_PLY1_1:                                 DEFB "PLAYER 1",0
-TXT_BTN_PLY1_2:                                 DEFB "^ SHOT",0
-TXT_BTN_PLY1_3:                                 DEFB "< LEFT",0
-TXT_BTN_PLY1_4:                                 DEFB "> RIGHT",0
+TXT_BTN_PLY1_2:                                 DEFB "O SHOT",0
+TXT_BTN_PLY1_3:                                 DEFB "K LEFT",0
+TXT_BTN_PLY1_4:                                 DEFB "L RIGHT",0
 TXT_BTN_PLY1_5:                                 DEFB "       ",0 ; OR JOY1
 TXT_BTN_PLY2_1:                                 DEFB "PLAYER 2",0
 TXT_BTN_PLY2_2:                                 DEFB "W SHOT",0

@@ -10,7 +10,7 @@
     ORG 0x8000               ; Loader address (0x8000)
 
     INCLUDE "constants.asm"
-    INCLUDE "string.asm"						; Include hooks library
+    INCLUDE "string.asm"					; Include hooks library
 	INCLUDE "hooks.asm"						; Include hooks library
     INCLUDE "vdp.asm"                       ; Include screen library   
     INCLUDE "menu.asm"                      ; Include menu library
@@ -20,7 +20,7 @@
 
 Begin:
   
-8    CALL    Game_InitVariables              ; Initialize the screen
+    CALL    Game_InitVariables              ; Initialize the screen
     
     CALL    VDP_ClearScreen
 

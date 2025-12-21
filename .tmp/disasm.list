@@ -5064,7 +5064,7 @@
 8073 00           nop
 
 8074 TXT_BTN_PLY1_2:
-8074 5E           ld e,(hl)
+8074 4F           ld c,a
 8075 20 53        jr nz,TXT_GSSOCCER
 
 8077 48           ld c,b
@@ -5073,7 +5073,7 @@
 807A 00           nop
 
 807B TXT_BTN_PLY1_3:
-807B 3C           inc a
+807B 4B           ld c,e
 
 ; Note: The disassembly is ambiguous at 807Dh.
 807C 20 4C        jr nz,TXT_GSSOCCER
@@ -5088,8 +5088,8 @@
 8081 00           nop
 
 8082 TXT_BTN_PLY1_4:
-8082 3E 20        ld a,20h
-8084 52           ld d,d
+8082 4C           ld c,h
+8083 20 52        jr nz,SUB_80A4.L5
 
 8085 SUB_807D.L2:
 8085 49           ld c,c
@@ -5282,7 +5282,7 @@
 8105 52           ld d,d
 8106 00           nop
 
-B241 Var_Hooks_TickSuspended:
-B241 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????
+B286 Var_Hooks_TickSuspended:
+B286 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????
 C127 DATA_C127:
 C127 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????

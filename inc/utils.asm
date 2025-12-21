@@ -183,6 +183,9 @@ Utils_PlayBeepHighLong:
 ; Suono più simile al BASIC: micro-decay 12->8->0 + tiny delay
 ; ------------------------------------------------------------
 Utils_PlayBeepTick:
+    ld  a, (Var_Game_MatchInProgress)
+    cp  NO
+    RET Z
     ld  b,80        ; durata
     ld  d,10         ; pitch (più basso = più acuto)
     call PlayBeep

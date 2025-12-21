@@ -22,6 +22,9 @@ Menu_Show:
     EI
     RET
 
+;------------------------------------------------------------------------
+; Show options menu
+; -------------------------------------------------------------------------
 Menu_ShowOptions:
     CALL    VDP_ClearMenuSideArea
 
@@ -82,7 +85,7 @@ Menu_ShowOptions:
 
     LD      A, (Var_Game_SelectedPlayers)
     CP      GAME_MODE_1_PLAYER
-    JR      Z, .Level1
+    JP      Z, .Level1
     LD      HL, TXT_GAME_MODE_2_PLAYERS
     LD      D, 13
     LD      E, 23
@@ -117,12 +120,16 @@ Menu_ShowOptions:
     CALL    VDP_PrintString
     LD      A, (Var_Game_SelectedPlayers)
     CP      GAME_MODE_2_PLAYERS
-    JR      Z, .Start
+    JP      Z, .Start
 
+    LD      A, 63
+    LD      D, 14
+    LD      E, 29
+    CALL    VDP_PrintRamChar
 
     LD      A, (Var_Game_SelectedLevel)
     CP      1
-    JR      NZ, .Level2
+    JP      NZ, .Level2
     LD      HL, TXT_LEVEL_1
     LD      D, 14
     LD      E, 23
@@ -131,7 +138,7 @@ Menu_ShowOptions:
 .Level2:
     LD      A, (Var_Game_SelectedLevel)
     CP      2
-    JR      NZ, .Level3
+    JP      NZ, .Level3
     LD      HL, TXT_LEVEL_2
     LD      D, 14
     LD      E, 23
@@ -140,7 +147,7 @@ Menu_ShowOptions:
 .Level3:
     LD      A, (Var_Game_SelectedLevel)
     CP      3
-    JR      NZ, .Level4
+    JP      NZ, .Level4
     LD      HL, TXT_LEVEL_3
     LD      D, 14
     LD      E, 23
@@ -149,7 +156,7 @@ Menu_ShowOptions:
 .Level4:
     LD      A, (Var_Game_SelectedLevel)
     CP      4
-    JR      NZ, .Level5
+    JP      NZ, .Level5
     LD      HL, TXT_LEVEL_4
     LD      D, 14
     LD      E, 23
