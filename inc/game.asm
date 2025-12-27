@@ -7,24 +7,24 @@
 
 ; ------ ROUTINES ------
 Game_InitVariables:
-    LD      A, NO_VALUE
-    LD      (Var_Game_FirstKickType), A
-    LD      A, NO
-    LD      (Var_Utils_VblankStopped), A
-    LD      (Var_Hooks_ForceVdpRedraw), A
-    LD      (Var_Hooks_GameResumingWaiting), A
-    LD      A, GAME_MODE_1_PLAYER
-    LD      (Var_Game_SelectedPlayers), A
-    LD      A, NO
-    LD      (Var_Game_MatchInProgress), A
-    LD      A, 2
-    LD      (Var_Game_HumanPlayerSpeed), A
-    XOR     A
-    LD      (Var_Game_BallUpdateTimer), A
-    LD      (Var_Hooks_GoalCerimonyCounter), A
-    CALL    Hooks_InitAICounters
-    CALL    Game_StopShot
-    RET
+    ld      a, NO_VALUE
+    ld      (Var_Game_FirstKickType), a
+    ld      a, NO
+    ld      (Var_Utils_VblankStopped), a
+    ld      (Var_Hooks_ForceVdpRedraw), a
+    ld      (Var_Hooks_GameResumingWaiting), a
+    ld      a, GAME_MODE_1_PLAYER
+    ld      (Var_Game_SelectedPlayers), a
+    ld      a, NO
+    ld      (Var_Game_MatchInProgress), a
+    ld      a, 2
+    ld      (Var_Game_HumanPlayerSpeed), a
+    xor     a
+    ld      (Var_Game_BallUpdateTimer), a
+    ld      (Var_Hooks_GoalCerimonyCounter), a
+    call    Hooks_InitAICounters
+    call    Game_StopShot
+    ret
 
 
 ; ---------------------------------------------------------------------------
@@ -41,7 +41,7 @@ Game_CheckVerticalShotPossessionStop:
     push hl
 
     ; ---------------------------
-    ; Check NERI: match esatto (Y,X)  ID 1..3
+    ; Check BLACK: exact match (Y,X)  ID 1..3
     ; ---------------------------
     ld   b,TEAM_BLACK
     ld   c,1
@@ -67,7 +67,7 @@ Game_CheckVerticalShotPossessionStop:
     jr   nz,.chk_black_loop
 
     ; ---------------------------
-    ; Check BIANCHI: match su (BallY+1, BallX)  ID 1..3
+    ; Check WHITE: match on (BallY+1, BallX)  ID 1..3
     ; ---------------------------
     ld   b,TEAM_WHITE
     ld   c,1
@@ -95,15 +95,15 @@ Game_CheckVerticalShotPossessionStop:
     jr   nz,.chk_white_loop
 
     ; ------------------------------------------------------------
-    ; Nessun possesso: verifica stop per fondo campo del lato attuale
-    ; e/o cambio metà campo
+    ; No possession: check stop for end field of current side
+    ; and/or change half field
     ; ------------------------------------------------------------
     ld   a,(Var_Game_ActiveFieldSide)
     cp   FIELD_SOUTH_SIDE
     jr   nz,.field_is_north
 
-; ===== CAMPO SOUTH =====
-    ; Se palla su riga 4 -> fondo campo / porta: stop tiro
+; ===== SOUTH FIELD =====
+    ; If ball on row 4 -> end field / goal: stop shot
     ld   a,d
     cp   4
     jr   nz,.done
@@ -112,9 +112,9 @@ Game_CheckVerticalShotPossessionStop:
 
 
 
-; ===== CAMPO NORTH =====
+; ===== NORTH FIELD =====
 .field_is_north:
-    ; Se palla su riga 0 -> fondo campo / porta: stop tiro
+    ; If ball on row 0 -> end field / goal: stop shot
     ld   a,d
     or   a
     jr   nz,.done
@@ -132,51 +132,51 @@ Game_CheckVerticalShotPossessionStop:
 
 ; ---------------------------------------------------------------------------
 ; Game_UpdateBallMovement
-; Da chiamare a ogni tick (AiTick) per muovere la palla se in tiro.
+; To be called every tick (AiTick) to move the ball if shooting.
 ;
-; Usa:
+; Uses:
 ;   Var_Game_BallDirection
-;   Var_Game_BallDiagonalMovCounter (0 normale, 255 caso speciale)
+;   Var_Game_BallDiagonalMovCounter (0 normal, 255 special case)
 ;
-; Convenzioni:
+; Conventions:
 ;   Game_GetBallPosition -> DE  (D=Y, E=X)
-;   Game_SetBallPosition usa DE (D=Y, E=X)
+;   Game_SetBallPosition uses DE (D=Y, E=X)
 ;
-; Regole:
-; - Se BallDirection = NONE -> nessun movimento
-; - Caso speciale counter=255 (solo WHITE attaccante, campo NORTH, Y=2):
-;     * NORTH: primo tick = nessun movimento, counter->0
-;     * NE/NW: primo tick = solo laterale, counter->0
-; - Diagonali: ogni tick muove Y e prova a muovere X; se X è già al bordo
-;   che impedisce la diagonale, X non cambia ma il tick conta comunque.
-; - Il counter aumenta SEMPRE per direzioni diverse da:
+; Rules:
+; - If BallDirection = NONE -> no movement
+; - Special case counter=255 (only WHITE attacking, NORTH field, Y=2):
+;     * NORTH: first tick = no movement, counter->0
+;     * NE/NW: first tick = only horizontal, counter->0
+; - Diagonals: every tick moves Y and tries to move X; if X is already at border
+;   that prevents diagonal, X doesn't change but tick still counts.
+; - Counter increases ALWAYS for directions other than:
 ;       BALL_DIRECTION_NONE, BALL_DIRECTION_NORTH, BALL_DIRECTION_SOUTH
-; - Se (counter == 2) prima di uscire: Game_StopShot (stop definitivo tiro)
+; - If (counter == 2) before exit: Game_StopShot (definitive shot stop)
 ; ---------------------------------------------------------------------------
 Game_UpdateBallMovement:
 
     ld    a,(Var_Hooks_ForceVdpRedraw)
     cp    YES
     ret   z
-    LD    A, (Var_Game_BallUpdateTimer)
+    ld    a, (Var_Game_BallUpdateTimer)
     inc   a
-    LD    (Var_Game_BallUpdateTimer), A
-    CP    10
-    RET    NZ
-    XOR   A
-    LD    (Var_Game_BallUpdateTimer), A
+    ld    (Var_Game_BallUpdateTimer), a
+    cp    10
+    ret    nz
+    xor   a
+    ld    (Var_Game_BallUpdateTimer), a
 
     push af
     push bc
     push de
     push hl
 
-    ; se palla ferma -> niente
+    ; if ball stopped -> nothing
     ld   a,(Var_Game_BallDirection)
     cp   BALL_DIRECTION_NONE
     jp   z,.done
 
-    ; forza redraw
+    ; force redraw
     ld   a,YES
     ld   (Var_Hooks_ForceVdpRedraw),a
 
@@ -184,7 +184,7 @@ Game_UpdateBallMovement:
     call Game_GetBallPosition         ; D=Y, E=X
 
     ; ------------------------------------------------------------
-    ; Caso speciale "first tick grafico" (counter=255)
+    ; Special case "first graphic tick" (counter=255)
     ; ------------------------------------------------------------
     ld   a,(Var_Game_BallDiagonalMovCounter)
     cp   255
@@ -198,19 +198,19 @@ Game_UpdateBallMovement:
     cp   BALL_DIRECTION_NORTH_WEST
     jr   z,.special_nw
 
-    ; se per errore 255 con altre direzioni, normalizza
+    ; if by error 255 with other directions, normalize
     xor  a
     ld   (Var_Game_BallDiagonalMovCounter),a
     jr   .normal_move
 
 .special_north:
-    ; primo tick: nessun movimento, solo marker grafico.
+    ; first tick: no movement, only graphic marker.
     xor  a
     ld   (Var_Game_BallDiagonalMovCounter),a
     jp   .done_check2
 
 .special_ne:
-    ; primo tick: solo laterale (X+1 se possibile)
+    ; first tick: only horizontal (X+1 if possible)
     ld   a,e
     cp   4
     jr   z,.special_ne_clear
@@ -222,7 +222,7 @@ Game_UpdateBallMovement:
     jp   .done_check2
 
 .special_nw:
-    ; primo tick: solo laterale (X-1 se possibile)
+    ; first tick: only horizontal (X-1 if possible)
     ld   a,e
     or   a
     jr   z,.special_nw_clear
@@ -235,12 +235,12 @@ Game_UpdateBallMovement:
 
 
 ; ------------------------------------------------------------
-; Movimento normale
+; Normal movement
 ; ------------------------------------------------------------
 .normal_move:
 
 
-    ; --- incremento counter SOLO se direzione è diagonale ---
+    ; --- increment counter ONLY if direction is diagonal ---
     ld   a,(Var_Game_BallDirection)
     cp   BALL_DIRECTION_NONE
     jr   z,.skip_counter_inc
@@ -257,7 +257,7 @@ Game_UpdateBallMovement:
     ld a, YES
     ld    (Var_Hooks_ForceVdpRedraw), a
 
-    ; dispatch direzione
+    ; dispatch direction
     ld   a,(Var_Game_BallDirection)
 
     cp   BALL_DIRECTION_NORTH
@@ -278,7 +278,7 @@ Game_UpdateBallMovement:
     cp   BALL_DIRECTION_SOUTH_WEST
     jp   z,.move_sw
 
-    ; direzione sconosciuta -> stop
+    ; unknown direction -> stop
     call Game_StopShot
     jp   .done
 
@@ -292,24 +292,24 @@ Game_UpdateBallMovement:
     ld      a, (Var_Game_ActiveFieldSide)
     cp      FIELD_NORTH_SIDE
     jp      z,.stop_now
-    CALL    Hooks_TickStop
-    LD      A, FIELD_NORTH_SIDE
-    LD      (Var_Game_ActiveFieldSide),A
-    CALL    VDP_DrawField
-    CALL    Game_PutPlayersToNewFieldSide
+    call    Hooks_TickStop
+    ld      a, FIELD_NORTH_SIDE
+    ld      (Var_Game_ActiveFieldSide),a
+    call    VDP_DrawField
+    call    Game_PutPlayersToNewFieldSide
     ld      a,YES
     ld      (Var_Hooks_ForceVdpRedraw),a
-    CALL    Game_GetBallPosition
-    LD      D, 4
-    CALL    Game_SetBallPosition
-    LD      A, NO_VALUE
-    LD      (Var_Game_BallYOldPosition), A
-    CALL    Hooks_TickStart
+    call    Game_GetBallPosition
+    ld      d, 4
+    call    Game_SetBallPosition
+    ld      a, NO_VALUE
+    ld      (Var_Game_BallYOldPosition), a
+    call    Hooks_TickStart
     jp      .done
 .move_north_continue:
     call Game_SetBallPosition
 
-    ; --- NUOVO: stop se diventa possesso (verticale puro) ---
+    ; --- NEW: stop if becomes possession (pure vertical) ---
     call Game_CheckVerticalShotPossessionStop
 
     jr   .done_check2
@@ -324,19 +324,19 @@ Game_UpdateBallMovement:
     ld      a, (Var_Game_ActiveFieldSide)
     cp      FIELD_SOUTH_SIDE
     jr      z,.stop_now
-    CALL    Hooks_TickStop
-    LD      A, FIELD_SOUTH_SIDE
-    LD      (Var_Game_ActiveFieldSide),A
-    CALL    VDP_DrawField
-    CALL    Game_PutPlayersToNewFieldSide
+    call    Hooks_TickStop
+    ld      a, FIELD_SOUTH_SIDE
+    ld      (Var_Game_ActiveFieldSide),a
+    call    VDP_DrawField
+    call    Game_PutPlayersToNewFieldSide
     ld      a,YES
     ld      (Var_Hooks_ForceVdpRedraw),a
-    CALL    Game_GetBallPosition
-    LD      D, 0
-    CALL    Game_SetBallPosition
-    LD      A, NO_VALUE
-    LD      (Var_Game_BallYOldPosition), A
-    CALL    Hooks_TickStart
+    call    Game_GetBallPosition
+    ld      d, 0
+    call    Game_SetBallPosition
+    ld      a, NO_VALUE
+    ld      (Var_Game_BallYOldPosition), a
+    call    Hooks_TickStart
     jr      .done
 
 .move_south_continue:
@@ -435,13 +435,13 @@ Game_UpdateBallMovement:
 ; MODIFIES: -
 ;------------------------------------------------------------------------
 Game_GetBallPosition:
-    PUSH    AF
-    LD      A, (Var_Game_BallXPosition)
-    LD      E, A
-    LD      A, (Var_Game_BallYPosition)  
-    LD      D, A
-    POP     AF
-    RET
+    push    af
+    ld      a, (Var_Game_BallXPosition)
+    ld      e, a
+    ld      a, (Var_Game_BallYPosition)  
+    ld      d, a
+    pop     af
+    ret
 ;------------------------------------------------------------------------
 ; Set ball position
 ; INPUT:  D = Y, E = X   (coordinate di matrice 0..4)
@@ -452,24 +452,24 @@ Game_GetBallPosition:
 ;   - Poi aggiorna Var_Game_BallX/YPosition con la nuova
 ;------------------------------------------------------------------------
 Game_SetBallPosition:
-    PUSH    AF
+    push    af
 
     ; --- salviamo la posizione corrente come "old" ---
-    LD      A,(Var_Game_BallXPosition)
-    LD      (Var_Game_BallXOldPosition),A
+    ld      a,(Var_Game_BallXPosition)
+    ld      (Var_Game_BallXOldPosition),a
 
-    LD      A,(Var_Game_BallYPosition)
-    LD      (Var_Game_BallYOldPosition),A
+    ld      a,(Var_Game_BallYPosition)
+    ld      (Var_Game_BallYOldPosition),a
 
     ; --- scriviamo la nuova posizione (da D/E) ---
-    LD      A,D
-    LD      (Var_Game_BallYPosition),A
+    ld      a,d
+    ld      (Var_Game_BallYPosition),a
 
-    LD      A,E
-    LD      (Var_Game_BallXPosition),A
+    ld      a,e
+    ld      (Var_Game_BallXPosition),a
 
-    POP     AF
-    RET
+    pop     af
+    ret
 
 ; ** UTILITY ROUTINES **
 
@@ -494,30 +494,30 @@ Game_SetBallPosition:
 GetPlayerEntryPtr:
     ; n = TEAM*4 + ID  (TEAM_BLACK=0, TEAM_WHITE=1)
     ; salvo TEAM/ID perché userò BC come registro di lavoro
-    PUSH BC
+    push bc
 
-    LD   A,B
-    ADD  A,A           ; *2
-    ADD  A,A           ; *4
-    ADD  A,C           ; + ID → n (0..7)
+    ld   a,b
+    add  a,a           ; *2
+    add  a,a           ; *4
+    add  a,c           ; + ID → n (0..7)
 
-    LD   C,A           ; C = n
-    LD   B,0           ; BC = n (16-bit)
+    ld   c,a           ; C = n
+    ld   b,0           ; BC = n (16-bit)
 
     ; HL = n * PLAYER_ENTRY_SIZE (7)
-    LD   HL,0
-    LD   A,PLAYER_ENTRY_SIZE      ; A = 7
+    ld   hl,0
+    ld   a,PLAYER_ENTRY_SIZE      ; A = 7
 .GPE_MulLoop:
-    ADD  HL,BC                    ; HL += n
-    DEC  A
-    JR   NZ,.GPE_MulLoop          ; ripeti 7 volte
+    add  hl,bc                    ; HL += n
+    dec  a
+    jr   nz,.GPE_MulLoop          ; ripeti 7 volte
 
     ; A questo punto HL = n * 7
-    LD   DE,Var_Game_PlayersInfo
-    ADD  HL,DE                    ; HL = base + n*7
+    ld   de,Var_Game_PlayersInfo
+    add  hl,de                    ; HL = base + n*7
 
-    POP  BC                       ; ripristina TEAM/ID
-    RET
+    pop  bc                       ; ripristina TEAM/ID
+    ret
 
 
 ; ---------------------------------------------------------------------------
@@ -681,58 +681,58 @@ DeterminePlayerRole:
 ;   AF, DE, HL
 ; ---------------------------------------------------------------------------
 SetPlayerInfo:
-    PUSH    BC             ; salva TEAM, ID
-    PUSH    DE             ; salva newY,newX
+    push    bc             ; salva TEAM, ID
+    push    de             ; salva newY,newX
 
     ; HL -> inizio entry (PREV_X)
-    CALL    GetPlayerEntryPtr
+    call    GetPlayerEntryPtr
 
     ; ----- leggi vecchia CUR_X / CUR_Y -----
-    PUSH    HL             ; salva base entry
+    push    hl             ; salva base entry
 
-    INC     HL             ; PREV_Y
-    INC     HL             ; CUR_X
-    LD      A,(HL)         ; A = old CUR_X
-    INC     HL             ; CUR_Y
-    LD      C,(HL)         ; C = old CUR_Y
+    inc     hl             ; PREV_Y
+    inc     hl             ; CUR_X
+    ld      a,(hl)         ; A = old CUR_X
+    inc     hl             ; CUR_Y
+    ld      c,(hl)         ; C = old CUR_Y
 
-    POP     HL             ; HL di nuovo su PREV_X
+    pop     hl             ; HL di nuovo su PREV_X
 
     ; ----- PREV_X / PREV_Y -----
-    LD      (HL),A         ; PREV_X = old CUR_X
-    INC     HL
-    LD      (HL),C         ; PREV_Y = old CUR_Y
+    ld      (hl),a         ; PREV_X = old CUR_X
+    inc     hl
+    ld      (hl),c         ; PREV_Y = old CUR_Y
 
     ; ----- CUR_X / CUR_Y -----
-    INC     HL             ; HL -> CUR_X
-    POP     DE             ; D=newY, E=newX
-    LD      (HL),E         ; CUR_X
-    INC     HL
-    LD      (HL),D         ; CUR_Y
+    inc     hl             ; HL -> CUR_X
+    pop     de             ; D=newY, E=newX
+    ld      (hl),e         ; CUR_X
+    inc     hl
+    ld      (hl),d         ; CUR_Y
 
     ; ----- TEAM / ID / ROLE -----
-    INC     HL             ; TEAM
-    POP     BC             ; ripristina TEAM,ID
-    LD      (HL),B         ; TEAM
-    INC     HL             ; ID
-    LD      (HL),C         ; ID
-    INC     HL             ; ROLE
+    inc     hl             ; TEAM
+    pop     bc             ; ripristina TEAM,ID
+    ld      (hl),b         ; TEAM
+    inc     hl             ; ID
+    ld      (hl),c         ; ID
+    inc     hl             ; ROLE
 
     ; Se ID=0 → portiere fisso
-    LD      A,C
-    OR      A
-    JR      NZ,.not_goalkeeper
+    ld      a,c
+    or      a
+    jr      nz,.not_goalkeeper
 
-    LD      A,ROLE_GOALKEEPER
-    LD      (HL),A
-    RET
+    ld      a,ROLE_GOALKEEPER
+    ld      (hl),a
+    ret
 
 .not_goalkeeper:
     ; determina il ruolo per i giocatori di movimento
     ; B = TEAM, D = Y sono ancora validi
-    CALL    DeterminePlayerRole
-    LD      (HL),A
-    RET
+    call    DeterminePlayerRole
+    ld      (hl),a
+    ret
 
 ; ---------------------------------------------------------------------------
 ; Gets player info by TEAM and ID.
@@ -3161,6 +3161,19 @@ Game_BlackTeamHorizMoveAsked:
     
     LD      A, (Var_Game_BallYPosition)
     LD      (Var_Game_TmpAskedMovingRow), A
+    LD      A, (Var_Game_ActiveFieldSide)
+    CP      FIELD_SOUTH_SIDE
+    JR      Z, .CheckSouthSideFieldMovementEnabled
+.CheckNorthSideFieldMovementEnabled:
+    LD      A, (Var_Game_BallYPosition)
+    CP      0
+    RET     Z
+    JR      .MovementEnabled
+.CheckSouthSideFieldMovementEnabled:
+    LD      A, (Var_Game_BallYPosition)
+    CP      4
+    RET     Z
+.MovementEnabled:
 
     LD      A, (Var_Game_BallDirection)
     CP      BALL_DIRECTION_NONE
@@ -3256,7 +3269,19 @@ Game_WhiteTeamHorizMoveAsked:
     LD      A, (Var_Game_BallYPosition)
     INC     A
     LD      (Var_Game_TmpAskedMovingRow), A
-
+    LD      A, (Var_Game_ActiveFieldSide)
+    CP      FIELD_SOUTH_SIDE
+    JR      Z, .CheckSouthSideFieldMovementEnabled
+.CheckNorthSideFieldMovementEnabled:
+    LD      A, (Var_Game_BallYPosition)
+    CP      0
+    RET     Z
+    JR      .MovementEnabled
+.CheckSouthSideFieldMovementEnabled:
+    LD      A, (Var_Game_BallYPosition)
+    CP      4
+    RET     Z
+.MovementEnabled:
     LD      A, (Var_Game_BallDirection)
     CP      BALL_DIRECTION_NONE
     JR      Z, .after_row_choice
@@ -3363,7 +3388,7 @@ Game_GameOver:
     CALL    String_RemoveLeadingZeros
     LD      HL, Var_Utils_NumberToPrint
     LD      D, 1
-    LD      E, 23
+    LD      E, 26
     CALL    VDP_PrintString 
 
     LD      HL, TXT_GAME_OVER

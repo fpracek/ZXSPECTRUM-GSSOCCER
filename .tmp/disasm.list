@@ -5282,7 +5282,7 @@
 8105 52           ld d,d
 8106 00           nop
 
-B286 Var_Hooks_TickSuspended:
-B286 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????
+B2B0 Var_Hooks_TickSuspended:
+B2B0 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????
 C127 DATA_C127:
 C127 00 00 00...  DEFB 00 00 00 00 00 00 00 00 ; ASCII: ????????
